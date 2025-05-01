@@ -37,7 +37,7 @@ export async function deleteReservation(bookingId) {
       throw new Error('You must be logged in!');
     }
   
-    const  error } = await supabase.from('bookings').delete().eq('id', bookingId);
+    const { error } = await supabase.from('bookings').delete().eq('id', bookingId);
 
     if (error) {
       throw new Error('Booking could not be deleted');
