@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from 'react';
 import { isWithinInterval } from "date-fns";
 import { DayPicker } from "react-day-picker";
 import "react-day-picker/dist/style.css";
@@ -28,7 +27,7 @@ function DateSelector({settings, bookedDates, cabin}) {
 
 
   // SETTINGS
-  const {minBookingLength, maxBookingLength} = settings;
+  const {maxBookingLength} = settings;
 
   return (
     <div className="flex flex-col justify-between">

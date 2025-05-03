@@ -15,10 +15,10 @@ export const {
     }),
   ],
   callbacks: {
-    authorized({auth, request}) {
+    authorized({auth}) {
       return !!auth?.user
     },
-    async signIn({ user, account, profile }) {
+    async signIn({ user }) {
       try {
         const existingGuest = await getGuest(user.email);
         if (!existingGuest) {
@@ -28,11 +28,11 @@ export const {
           });
         }
         return true;
-      } catch (error) {
+      } catch (_error) {
         return false;
       }
     },
-    async session({ session, user }) {
+    async session({ session }) {
       const guest = await getGuest(session.user.email);
       session.user.guestId = guest.id;
       return session;
