@@ -1,7 +1,29 @@
-function ReservationForm({ cabin, user }) {
-  // CHANGE
-  const { maxCapacity } = cabin;
+'use client';
 
+import { differenceInDays } from 'date-fns';
+import { useReservation } from './ReservationContext';
+import { createBooking } from '@/app/_lib/actions';
+import { useState } from 'react';
+import SubmitButton from './SubmitButton';
+
+function ReservationForm({ cabin, user }) {
+  const [isBreakfastNeeded, setIsBreakfastNeeded] = useState('');
+  const { range, resetRange } = useReservation();
+  const { maxCapacity, regularPrice, discount, id } = cabin;
+  const startDate = range.from;
+  const endDate = range.to;
+  const numNights = differenceInDays(endDate, startDate);
+  const cabinPrice = numNights * (regularPrice - discount);
+
+  const bookingData = {
+    startDate,
+    endDate,
+    numNights,
+    cabinPrice,
+    cabinId: id,
+  };
+
+  const createBookingWithData = createBooking.bind(null, bookingData);
   return (
     <div className='scale-[1.01]'>
       <div className='bg-primary-800 text-primary-300 px-16 py-2 flex justify-between items-center'>
@@ -19,7 +41,14 @@ function ReservationForm({ cabin, user }) {
         </div>
       </div>
 
-      <form className='bg-primary-900 py-10 px-16 text-lg flex gap-5 flex-col'>
+      <form
+        // action={createBookingWithData}
+        action={async(formData) => {
+          await createBookingWithData(formData);
+          resetRange();
+        }}
+        className='bg-primary-900 py-10 px-16 text-lg flex gap-5 flex-col'
+      >
         <div className='space-y-2'>
           <label htmlFor='numGuests'>How many guests?</label>
           <select
@@ -40,6 +69,55 @@ function ReservationForm({ cabin, user }) {
         </div>
 
         <div className='space-y-2'>
+          <label htmlFor='hasBreakfast'>Has Breakfast?</label>
+          <select
+            name='hasBreakfast'
+            id='hasBreakfast'
+            className='px-5 py-3 bg-primary-200 text-primary-800 w-full shadow-sm rounded-sm'
+            required
+            value={isBreakfastNeeded}
+            onChange={(e) => {
+              if (!e.target.value) {
+                setIsBreakfastNeeded(e.target.value);
+              } else {
+                setIsBreakfastNeeded(+e.target.value);
+              }
+            }}
+          >
+            <option value=''>Select hasBreakfast..</option>
+            <option value={1}>Yes</option>
+            <option value={0}>No</option>
+          </select>
+        </div>
+
+        {Boolean(isBreakfastNeeded) && (
+          <div className='space-y-2'>
+            <label htmlFor='extrasPrice'>Extras Price</label>
+            <input
+              type='number'
+              className='px-5 py-3 bg-primary-200 text-primary-800 w-full shadow-sm rounded-sm'
+              placeholder='Enter Extras Price...'
+              name='extrasPrice'
+              required
+            />
+          </div>
+        )}
+
+        <div className='space-y-2'>
+          <label htmlFor='isPaid'>Is Paid?</label>
+          <select
+            name='isPaid'
+            id='isPaid'
+            className='px-5 py-3 bg-primary-200 text-primary-800 w-full shadow-sm rounded-sm'
+            required
+          >
+            <option value=''>Select IsPaid..</option>
+            <option value={1}>Yes</option>
+            <option value={0}>No</option>
+          </select>
+        </div>
+
+        <div className='space-y-2'>
           <label htmlFor='observations'>
             Anything we should know about your stay?
           </label>
@@ -52,11 +130,15 @@ function ReservationForm({ cabin, user }) {
         </div>
 
         <div className='flex justify-end items-center gap-6'>
-          <p className='text-primary-300 text-base'>Start by selecting dates</p>
-
-          <button className='bg-accent-500 px-8 py-4 text-primary-800 font-semibold hover:bg-accent-600 transition-all disabled:cursor-not-allowed disabled:bg-gray-500 disabled:text-gray-300'>
-            Reserve now
-          </button>
+          {!(startDate && endDate) ? (
+            <p className='text-primary-300 text-base'>
+              Start by selecting dates
+            </p>
+          ) : (
+            <SubmitButton pendingLabel={'Reserving...'}>
+              Reserve now
+            </SubmitButton>
+          )}
         </div>
       </form>
     </div>
